@@ -1,0 +1,15 @@
+<openerp>
+  <data>
+   <record id="view_productvaluation_form_add_text_field_inherit" model="ir.ui.view">
+        <field name="name">view.productvaluation.form.add.text.field.inherit</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="stock_account.product_valuation_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='qty_available']" position="after">
+                <field name="location_id"/>
+            </xpath>
+        </field>
+    </record>
+
+  </data>
+</openerp>
