@@ -40,6 +40,10 @@
                     <field name="peso_total"/>
                 </xpath>
                 <xpath expr="//tree/field[@name='quantity']" position="before">
+                    <field name="entradas"/>
+                    <field name="salidas"/>
+                    <field name="ajuste"/>
+                    <field name="interno"/>
                     <field name="stock_actual"/>
                 </xpath>
 

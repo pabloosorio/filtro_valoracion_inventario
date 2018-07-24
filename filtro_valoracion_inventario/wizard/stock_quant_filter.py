@@ -36,14 +36,35 @@ class StockQuantFilter(models.TransientModel):
             }
             return action
         else:
-            self.env['stock.quant']._merge_quants()
-            return self.env.ref('stock.quantsact').read()[0]
+            #self.env['stock.quant']._merge_quants()
+            #return self.env.ref('stock.quantsact').read()[0]
+            tree_view_id = self.env.ref('stock.view_stock_quant_tree').id
+            form_view_id = self.env.ref('stock.view_stock_quant_form').id
+            # We pass `to_date` in the context so that `qty_available` will be computed across
+            # moves until date.
+            action = {
+                'type': 'ir.actions.act_window',
+                'views': [(tree_view_id, 'tree'), (form_view_id, 'form')],
+                'view_mode': 'tree,form',
+                'name': _('Valoracion de inventario v10'),
+                'res_model': 'stock.quant',
+                #"'context': dict(self.env.context, to_date=self.date),
+                'context':{'search_default_internal_loc': 1, 'search_default_locationgroup':1,'fecha_prueba':datetime.datetime.now()},
+                'domain':  [('create_date', '<=',  datetime.datetime.now())],
+            }
+            return action
+
+
 
 class stock_quant_categori(models.Model):
     _inherit = 'stock.quant'
 
     categoria_producto = fields.Many2one('product.category', string='Categoria interna', related='product_id.product_tmpl_id.categ_id', store=True)
     peso_total = fields.Float(string="Peso Total", compute='_compute_peso')
+    entradas = fields.Float(string="Entradas")
+    salidas = fields.Float(string="Salidas")
+    ajuste = fields.Float(string="Ajustes")
+    interno = fields.Float(string="M. Internos")
     stock_actual = fields.Float(string="Stock a la fecha", compute='_compute_stock_actual')
 
     @api.one
@@ -76,22 +97,29 @@ class stock_quant_categori(models.Model):
         cr.execute(str(sql))
         filas = cr.fetchone()
         total_stock = max(filas)
-        '''sql = "select sm.product_uom_qty, sp.name, sl.name from stock_move sm full outer join stock_picking sp on sp.id=sm.picking_id full outer join stock_location sl on sl.id = sm.location_id WHERE sm.product_id='"+str(self.product_id.id)+"' and sm.date<='"+str(search_fec)+"' and sm.state='done' and (sm.location_id='"+str(self.location_id.id)+"' or sm.location_dest_id='"+str(self.location_id.id)+"');"
-        cr.execute(str(sql))
-        filas = cr.fetchall()
-        total_stock = 0.0
-        if(filas!=[]):
-            for c in filas:
+        sqll = "select sm.product_uom_qty, sp.name, sl.name from stock_move sm full outer join stock_picking sp on sp.id=sm.picking_id full outer join stock_location sl on sl.id = sm.location_id WHERE sm.product_id='"+str(self.product_id.id)+"' and sm.date<='"+str(search_fec)+"' and sm.state='done' and (sm.location_id='"+str(self.location_id.id)+"' or sm.location_dest_id='"+str(self.location_id.id)+"');"
+        cr.execute(sqll)
+        filas2 = cr.fetchall()
+        ent = 0.0
+        sal = 0.0
+        aju = 0.0
+        inte = 0.0
+        if(filas2!=[]):
+            for c in filas2:
                 qty = float(c[0])
                 tt = str(c[1])
                 if(tt.find("/IN/")>=0):
-                    total_stock = total_stock + float(qty)
+                    ent = ent + float(qty)
                 if(tt == 'None'):
                     ttt = str(c[2])
                     if(ttt.find("adjustment")>=0):
-                        total_stock = total_stock + float(qty)
+                        aju = aju + float(qty)
                     else:
-                        total_stock = total_stock - float(qty)
+                        inte = inte + float(qty)
                 if(tt.find("/OUT/")>=0):
-                    total_stock = total_stock - float(qty)'''
+                    sal = sal + float(qty)
         self.stock_actual = total_stock
+        self.entradas = ent
+        self.salidas = sal
+        self.ajuste = aju
+        self.interno = inte
