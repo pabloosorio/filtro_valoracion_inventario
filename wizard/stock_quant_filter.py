@@ -97,7 +97,7 @@ class stock_quant_categori(models.Model):
         cr.execute(str(sql))
         filas = cr.fetchone()
         total_stock = max(filas)
-        sqll = "select sm.product_uom_qty, sp.name, sl.name from stock_move sm full outer join stock_picking sp on sp.id=sm.picking_id full outer join stock_location sl on sl.id = sm.location_id WHERE sm.product_id='"+str(self.product_id.id)+"' and sm.date<='"+str(search_fec)+"' and sm.state='done' and (sm.location_id='"+str(self.location_id.id)+"' or sm.location_dest_id='"+str(self.location_id.id)+"');"
+        sqll = "select sm.product_uom_qty, sp.name, sl.name, sm.location_dest_id, sm.location_id from stock_move sm full outer join stock_picking sp on sp.id=sm.picking_id full outer join stock_location sl on sl.id = sm.location_id WHERE sm.product_id='"+str(self.product_id.id)+"' and sm.date<='"+str(search_fec)+"' and sm.state='done' and (sm.location_id='"+str(self.location_id.id)+"' or sm.location_dest_id='"+str(self.location_id.id)+"');"
         cr.execute(sqll)
         filas2 = cr.fetchall()
         ent = 0.0
@@ -108,8 +108,11 @@ class stock_quant_categori(models.Model):
             for c in filas2:
                 qty = float(c[0])
                 tt = str(c[1])
+                des = str(c[3])
+                ori = str(c[4])
                 if(tt.find("/IN/")>=0):
-                    ent = ent + float(qty)
+                    if(str(self.location_id.id)==des):
+                        ent = ent + float(qty)
                 if(tt == 'None'):
                     ttt = str(c[2])
                     if(ttt.find("adjustment")>=0):
@@ -117,7 +120,8 @@ class stock_quant_categori(models.Model):
                     else:
                         inte = inte + float(qty)
                 if(tt.find("/OUT/")>=0):
-                    sal = sal + float(qty)
+                    if(str(self.location_id.id)==ori):
+                        sal = sal + float(qty)
         self.stock_actual = total_stock
         self.entradas = ent
         self.salidas = sal
