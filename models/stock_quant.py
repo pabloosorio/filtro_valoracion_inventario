@@ -16,3 +16,15 @@ class StockQuant(models.Model):
     @api.depends('stock_value')
     def _compute_stock_value(self):
         self.stock_value = self.product_id.stock_value
+
+
+class stock_quant_categori(models.Model):
+    _inherit = 'stock.quant'
+
+    categoria_producto = fields.Many2one('product.category', string='Categoria interna')
+    peso_total = fields.Float(string="Peso Total")
+    stock_actual = fields.Float(string="Stock a la fecha")
+    entradas = fields.Float(string="Entradas")
+    salidas = fields.Float(string="Salidas")
+    ajuste = fields.Float(string="Ajustes")
+    interno = fields.Float(string="M. Internos")

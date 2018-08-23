@@ -19,7 +19,7 @@
     'version': '0.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['base','stock','product'],
+    'depends': ['base','stock','product','stock_account'],
     # always loaded
     'data': [
         'views/templates.xml',
